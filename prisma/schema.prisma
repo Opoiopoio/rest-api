@@ -1,0 +1,49 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AccountCard {
+  NumberVersion       String            @id
+  Id                  Int
+  Name                String
+  DateOfCreateVersion DateTime
+  ConnectionTable     ConnectionTable[]
+}
+
+model ConnectionTable {
+  Number        Int           @id @default(autoincrement())
+  NumberVersion String
+  AccountCard   AccountCard   @relation(fields: [NumberVersion], references: [NumberVersion])
+  NameOfFields  String
+  FieldCard     FieldCard     @relation(fields: [NameOfFields], references: [Name])
+  StringValueId Int
+  StringValue   ValueString?  @relation(fields: [StringValueId], references: [Id])
+  IntValueId    Int
+  IntValue      ValueInteger? @relation(fields: [IntValueId], references: [Id])
+}
+
+model FieldCard {
+  Name            String            @id
+  DataType        String
+  ConnectionTable ConnectionTable[]
+}
+
+model ValueInteger {
+  Id              Int               @id
+  Value           Int
+  ConnectionTable ConnectionTable[]
+}
+
+model ValueString {
+  Id              Int               @id
+  Value           String
+  ConnectionTable ConnectionTable[]
+}
