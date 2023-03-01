@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,20 +11,19 @@ model AccountCard {
   NumberVersion       String            @id
   Id                  Int
   Name                String
-  DateOfCreateVersion DateTime
+  DateOfCreateVersion DateTime          @db.Time(6)
+  Status              String
   ConnectionTable     ConnectionTable[]
 }
 
 model ConnectionTable {
-  Number        Int           @id @default(autoincrement())
-  NumberVersion String
-  AccountCard   AccountCard   @relation(fields: [NumberVersion], references: [NumberVersion])
-  NameOfFields  String
-  FieldCard     FieldCard     @relation(fields: [NameOfFields], references: [Name])
-  StringValueId Int
-  StringValue   ValueString?  @relation(fields: [StringValueId], references: [Id])
-  IntValueId    Int
-  IntValue      ValueInteger? @relation(fields: [IntValueId], references: [Id])
+  Id                       Int            @id
+  AccountCardNumberVersion String
+  FieldCardName            String
+  AccountCard              AccountCard    @relation(fields: [AccountCardNumberVersion], references: [NumberVersion], onDelete: NoAction, onUpdate: NoAction)
+  FieldCard                FieldCard      @relation(fields: [FieldCardName], references: [Name], onDelete: NoAction, onUpdate: NoAction)
+  ValueInteger             ValueInteger[]
+  ValueString              ValueString[]
 }
 
 model FieldCard {
@@ -37,13 +33,15 @@ model FieldCard {
 }
 
 model ValueInteger {
-  Id              Int               @id
-  Value           Int
-  ConnectionTable ConnectionTable[]
+  Id                String           @id(map: "PK_ValueIntegers")
+  Value             String           @unique(map: "ValueIntegers_Value_key")
+  ConnectionTableId Int?
+  ConnectionTable   ConnectionTable? @relation(fields: [ConnectionTableId], references: [Id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model ValueString {
-  Id              Int               @id
-  Value           String
-  ConnectionTable ConnectionTable[]
+  Id                String          @id(map: "PK_ValueStrings")
+  Value             String          @unique(map: "ValueStrings_Value_key")
+  ConnectionTableId Int
+  ConnectionTable   ConnectionTable @relation(fields: [ConnectionTableId], references: [Id], onDelete: NoAction, onUpdate: NoAction)
 }
