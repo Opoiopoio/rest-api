@@ -11,19 +11,21 @@ model AccountCard {
   NumberVersion       String            @id
   Id                  Int
   Name                String
-  DateOfCreateVersion DateTime          @db.Time(6)
+  DateOfCreateVersion DateTime          @db.Timetz(6)
   Status              String
   ConnectionTable     ConnectionTable[]
 }
 
 model ConnectionTable {
-  Id                       Int            @id
+  Id                       Int           @id @default(autoincrement())
   AccountCardNumberVersion String
   FieldCardName            String
-  AccountCard              AccountCard    @relation(fields: [AccountCardNumberVersion], references: [NumberVersion], onDelete: NoAction, onUpdate: NoAction)
-  FieldCard                FieldCard      @relation(fields: [FieldCardName], references: [Name], onDelete: NoAction, onUpdate: NoAction)
-  ValueInteger             ValueInteger[]
-  ValueString              ValueString[]
+  ValueStringId            Int?
+  ValueIntegerId           Int?
+  AccountCard              AccountCard   @relation(fields: [AccountCardNumberVersion], references: [NumberVersion], onDelete: NoAction, onUpdate: NoAction)
+  FieldCard                FieldCard     @relation(fields: [FieldCardName], references: [Name], onDelete: NoAction, onUpdate: NoAction)
+  ValueInteger             ValueInteger? @relation(fields: [ValueIntegerId], references: [Id], onDelete: NoAction, onUpdate: NoAction)
+  ValueString              ValueString?  @relation(fields: [ValueStringId], references: [Id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model FieldCard {
@@ -33,15 +35,13 @@ model FieldCard {
 }
 
 model ValueInteger {
-  Id                String           @id(map: "PK_ValueIntegers")
-  Value             String           @unique(map: "ValueIntegers_Value_key")
-  ConnectionTableId Int?
-  ConnectionTable   ConnectionTable? @relation(fields: [ConnectionTableId], references: [Id], onDelete: NoAction, onUpdate: NoAction)
+  Value           Int               @unique
+  Id              Int               @id @default(autoincrement())
+  ConnectionTable ConnectionTable[]
 }
 
 model ValueString {
-  Id                String          @id(map: "PK_ValueStrings")
-  Value             String          @unique(map: "ValueStrings_Value_key")
-  ConnectionTableId Int
-  ConnectionTable   ConnectionTable @relation(fields: [ConnectionTableId], references: [Id], onDelete: NoAction, onUpdate: NoAction)
+  Value           String            @unique(map: "ValueStrings_Value_key")
+  Id              Int               @id(map: "Pk_ValueString") @default(autoincrement())
+  ConnectionTable ConnectionTable[]
 }
