@@ -34,7 +34,7 @@ export class AccountCardService {
         }
     }
 
-    async getCardByIdAndVersion(id: number, version?: string): Promise<ConnectionTable[] | string> {
+    async getCardByIdAndVersion(id: number, version?: number): Promise<ConnectionTable[] | string> {
         try {
             let card: AccountCard
             if (version != null) {
@@ -60,7 +60,7 @@ export class AccountCardService {
                         AccountCardNumberVersion: card.NumberVersion
                     },
                     include: {
-                        AccountCard:true,
+                        AccountCard: true,
                         FieldCard: true,
                         ValueInteger: true,
                         ValueString: true
@@ -76,9 +76,28 @@ export class AccountCardService {
         }
     }
 
-    async createNewCard(data: Prisma.AccountCardCreateInput): Promise<string> {
+    async createNewCard(arrayTables: Prisma.ConnectionTableCreateManyInput[], accountCard: Prisma.AccountCardCreateInput): Promise<string> {
         try {
-            await this.prisma.accountCard.create({ data })
+            accountCard.Id = parseInt(String(accountCard.Id))
+            accountCard.DateOfCreateVersion = new Date()
+            await this.prisma.accountCard.create({ data: accountCard })
+            var getCard = await this.prisma.accountCard.findFirst({
+                where: {
+                    Name: accountCard.Name,
+                    Id: accountCard.Id,
+                    DateOfCreateVersion: accountCard.DateOfCreateVersion
+                }
+            })
+            arrayTables.forEach(function (table) {
+                table.AccountCardNumberVersion = getCard.NumberVersion
+                table.ValueIntegerId = (String(table.ValueIntegerId) === '') ? null: parseInt(String(table.ValueIntegerId))
+                table.ValueStringId = (String(table.ValueStringId) === '') ? null: parseInt(String(table.ValueStringId))
+            })
+
+            await this.prisma.connectionTable.createMany({ data: arrayTables })
+            console.info(accountCard)
+
+
             return "Успешно"
         }
         catch (e) {

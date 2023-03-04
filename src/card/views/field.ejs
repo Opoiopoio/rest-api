@@ -36,7 +36,7 @@
                                             value=connectionTable.ValueString %>
                                             <% } else {value=connectionTable.ValueInteger} %>
                                                 <tr>
-                                                    <td>
+                                                    <td id="<%= connectionTable.FieldCard.DataType %>">
                                                         <%= connectionTable.FieldCardName %>
                                                     </td>
                                                     <td id="<%= value.Id %>">
@@ -47,6 +47,12 @@
                                                 <% }) %>
                             </tbody>
                         </table>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text" id="basic-addon3">Название новой карточки</span>
+                            </div>
+                            <input type="text" class="form-control" id="name" aria-describedby="basic-addon3">
+                        </div>
                         <button id="put" class="btn btn-success">put</button>
                     </div>
                     <% } %>
@@ -55,27 +61,56 @@
         <script>
             $('#put').click(function (e) {
                 e.preventDefault();
+                function getData(id) {
+                    let stringId = $(id).text()
+                    let returnId = stringId.slice(stringId.indexOf(': ') + 2, stringId.length).trim()
+                    return returnId
+                }
                 class ConnectionTable {
-                    Id
                     AccountCardNumberVersion
                     FieldCardName
-                    ValueId
+                    ValueIntegerId
+                    ValueStringId
                     constructor(checkbox) {
-                        this.Id = this.getId()
+                        this.FieldCardName = $($(checkbox).parent().parent().children()[0]).text().trim()
+                        let fieldCardDataType = $($(checkbox).parent().parent().children()[0]).attr('id')
+                        if (fieldCardDataType === 'String') {
+                            this.ValueStringId = $($(checkbox).parent().parent().children()[1]).attr('id')
+                        }
+                        else {
+                            this.ValueIntegerId = $($(checkbox).parent().parent().children()[1]).attr('id')
+                        }
                     }
-                    getId() {
-                        let stringId = $('#idCard').text()
-                        let id = stringId.slice(stringId.indexOf(': ') + 2, stringId.length)
-                        return id
-                    }
+
                 }
 
                 var checkboxes = $('input[type=checkbox]')
+
+                var data = []
                 for (let i = 0; i < checkboxes.length; i++) {
                     if ($(checkboxes[i]).prop('checked')) {
                         let conTable = new ConnectionTable(checkboxes[i])
+                        data.push(conTable)
                     }
                 }
+                let card = {
+                    Id: getData('#idCard'),
+                    DateOfCreateVersion: null,
+                    Name: $('#name').val(),
+                    Status: 'Actual'
+                }
+                console.log(typeof(card.Id))
+                $.ajax({
+                    type: "PUT",
+                    url: "/card/put",
+                    data: {
+                        connectionTables: data, accountCard: card
+                    },
+                    dataType: "json",
+                    success: function (response) {
+                        alert(response.message)
+                    }
+                });
             });
         </script>
 </body>

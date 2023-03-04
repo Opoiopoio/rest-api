@@ -1,5 +1,5 @@
 import { Controller, Get, Put, Param, Body, Render, ParseIntPipe } from '@nestjs/common';
-import { AccountCard, ConnectionTable } from '@prisma/client';
+import { AccountCard, ConnectionTable, Prisma } from '@prisma/client';
 import { AccountCardService } from 'src/account-card/account-card.service';
 
 @Controller('card')
@@ -23,13 +23,13 @@ export class CardController {
     @Render('field')
     @Get('get/:id/:version?')
     async getCardByIdAndVersion(@Param('id', ParseIntPipe) id: number,
-        @Param('version') version: string): Promise<{ content: ConnectionTable[] | string }> {
-            let connectionTables: ConnectionTable[] | string = await this._cardServise.getCardByIdAndVersion(id, version)
-        return { content:  connectionTables}
+        @Param('version', ParseIntPipe) version: number): Promise<{ content: ConnectionTable[] | string }> {
+        let connectionTables: ConnectionTable[] | string = await this._cardServise.getCardByIdAndVersion(id, version)
+        return { content: connectionTables }
     }
 
     @Put('put')
-    async createNewCard(@Body() data: AccountCard): Promise<string> {
-        return await this._cardServise.createNewCard(data)
+    async createNewCard(@Body() data: { connectionTables: Prisma.ConnectionTableCreateManyInput[], accountCard: Prisma.AccountCardCreateInput }): Promise<{ message: string }> {
+        return { message: await this._cardServise.createNewCard(data.connectionTables, data.accountCard) }
     }
 }
