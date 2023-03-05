@@ -40,7 +40,6 @@ export class CardController {
         connectionTables: Prisma.ConnectionTableCreateManyInput[],
         accountCard: Prisma.AccountCardCreateInput
     }): Promise<{ message: string }> {
-        console.log(data)
         return { message: await this._cardServise.createNewCard(data.connectionTables, data.accountCard) }
     }
 

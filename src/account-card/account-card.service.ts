@@ -89,12 +89,15 @@ export class AccountCardService {
         }
         catch (e) {
             console.warn(e)
+            //Возврат сообщения при возникновении ошибки
             return 'Произошла ошибка'
         }
     }
 
     async getFieldCards(): Promise<string | ConnectionTable[]> {
         try {
+
+            //Получение всех
             let tables = await this.prisma.connectionTable.findMany({
                 include: {
                     FieldCard: true,
@@ -102,12 +105,8 @@ export class AccountCardService {
                     ValueString: true
                 }
             })
-            let tableTMP: (ConnectionTable & {
-                FieldCard: FieldCard;
-                ValueInteger: ValueInteger;
-                ValueString: ValueString;
-            })
 
+            //Удаление из выборки повторяющихся элементов
             tables.forEach(function (table) {
                 let condition: boolean = true
                 for (let i = 0; i < tables.length; i++) {
@@ -116,16 +115,19 @@ export class AccountCardService {
                     }
                     else condition = false
                 }
-
             })
-
-            if (tables.length === 0) { return 'Поля отсутствуют' }
+            if (tables.length === 0) {
+                //Возврат сообщения пользователю
+                return 'Поля отсутствуют'
+            }
             else {
+                //Отправление полей на страницу 
                 return tables
             }
         }
         catch (e) {
             console.warn(e)
+            //Возврат сообщения при возникновении ошибки
             return 'Произошла ошибка'
         }
     }
@@ -133,28 +135,36 @@ export class AccountCardService {
     async createNewCard(arrayTables: Prisma.ConnectionTableCreateManyInput[],
         accountCard: Prisma.AccountCardCreateInput): Promise<string> {
         accountCard.NumberVersion = parseInt(String(accountCard.NumberVersion))
+
+        //Вызов метода, который создаёт новую учётную карточку
         var getCard = await this.createNewAccountCard(accountCard)
+
+        //Проверка на возврат ошибки
         if (typeof (getCard) === 'string') return getCard
         else {
+            //Вызов метода для привязки полей к карточке
             return await this.createNewConnectionTables(arrayTables, getCard)
         }
     }
 
-
     async editCard(arrayTables: Prisma.ConnectionTableCreateManyInput[],
         accountCard: Prisma.AccountCardCreateInput): Promise<string> {
         try {
-            //Внесение новой версии учётной карточки в БД
             accountCard.NumberVersion = parseInt(String(accountCard.NumberVersion)) + 1
+
+            //Вызов метода, который создаёт новую учётную карточку
             var getCard = await this.createNewAccountCard(accountCard)
+
+            //Проверка на возврат ошибки
             if (typeof (getCard) === 'string') return getCard
             else {
-                var getAccountCard = <AccountCard>getCard
-                return await this.createNewConnectionTables(arrayTables, getAccountCard)
+                //Вызов метода для привязки полей к карточке
+                return await this.createNewConnectionTables(arrayTables, getCard)
             }
         }
         catch (e) {
             console.warn(e)
+            //Возврат сообщения при возникновении ошибки
             return "Произошла ошибка при создании карточки"
         }
     }
@@ -163,6 +173,8 @@ export class AccountCardService {
         try {
             accountCard.CardId = parseInt(String(accountCard.CardId))
             accountCard.DateOfCreateVersion = new Date()
+
+            //Внесение карточки в БД
             await this.prisma.accountCard.create({ data: accountCard })
 
             //Получение только что добавленной карточки
@@ -176,7 +188,8 @@ export class AccountCardService {
         }
         catch (e) {
             console.warn(e)
-            return 'Произошла ошибра при создании карточки'
+            //Возврат сообщения при возникновении ошибки
+            return 'Произошла ошибка при создании карточки'
         }
     }
 
@@ -186,8 +199,10 @@ export class AccountCardService {
             //Добавление связей к таблице соединений
             arrayTables.forEach(function (table) {
                 table.AccountCardId = accountCard.Id
-                table.ValueIntegerId = (String(table.ValueIntegerId) === '') ? null : parseInt(String(table.ValueIntegerId))
-                table.ValueStringId = (String(table.ValueStringId) === '') ? null : parseInt(String(table.ValueStringId))
+                table.ValueIntegerId = (String(table.ValueIntegerId) === '')
+                    ? null : parseInt(String(table.ValueIntegerId))
+                table.ValueStringId = (String(table.ValueStringId) === '')
+                    ? null : parseInt(String(table.ValueStringId))
             })
 
             //Внесение таблиц соединений в БД
@@ -196,6 +211,7 @@ export class AccountCardService {
         }
         catch (e) {
             console.warn(e)
+            //Возврат сообщения при возникновении ошибки
             return 'Ошибка при создание таблиц соединений'
         }
     }

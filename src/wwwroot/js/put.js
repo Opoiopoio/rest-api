@@ -28,33 +28,36 @@ $('form').submit(function (e) {
             data.push(table)
         }
     }
-    if (data.length === 0) {
-        openFiedCards()
-        alert('Выберите поля')
-    }
-    else {
-        var card = {
-            NumberVersion: 1,
-            CardId: $('#CardId').val(),
-            Name: $('#Name').val(),
-            DateOfCreateVersion: null,
-            Status: 'Actual'
+    if ($('#CardId').val().trim() === '' || $('#Name').val().trim() === '')
+        alert('Заполните поля "Идентификатор карточки" и "Название карточки"')
+    else
+        if (data.length === 0) {
+            openFiedCards()
+            alert('Выберите поля')
         }
-        try {
-            $.ajax({
-                type: $(onForm).attr('method'),
-                url: $(onForm).attr('action'),
-                data: { connectionTables: data, accountCard: card },
-                dataType: 'json',
-                success: function (response) {
-                    alert(response.message)
-                }
-            });
+        else {
+            var card = {
+                NumberVersion: 1,
+                CardId: $('#CardId').val(),
+                Name: $('#Name').val(),
+                DateOfCreateVersion: null,
+                Status: 'Actual'
+            }
+            try {
+                $.ajax({
+                    type: $(onForm).attr('method'),
+                    url: $(onForm).attr('action'),
+                    data: { connectionTables: data, accountCard: card },
+                    dataType: 'json',
+                    success: function (response) {
+                        alert(response.message)
+                    }
+                });
+            }
+            catch (error) {
+                console.error('Error:', error);
+            }
         }
-        catch (error) {
-            console.error('Error:', error);
-        }
-    }
 });
 
 $(document).on('click', '.filling', closeFieldCards)
