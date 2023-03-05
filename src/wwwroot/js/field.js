@@ -11,7 +11,6 @@ $(document).on('click', '#sendPatch', function (e) {
         ValueIntegerId
         ValueStringId
         constructor(tr) {
-            console.log(tr)
             this.FieldCardName = $($(tr).children()[0]).text().trim()
             let fieldCardDataType = $($(tr).children()[0]).attr('id')
             if (fieldCardDataType === 'String') {
