@@ -1,4 +1,4 @@
-import { Controller, Get, Put, Param, Body, Render, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Put, Patch, Param, Body, Render, ParseIntPipe } from '@nestjs/common';
 import { AccountCard, ConnectionTable, Prisma } from '@prisma/client';
 import { AccountCardService } from 'src/account-card/account-card.service';
 
@@ -23,13 +23,26 @@ export class CardController {
     @Render('field')
     @Get('get/:id/:version?')
     async getCardByIdAndVersion(@Param('id', ParseIntPipe) id: number,
-        @Param('version', ParseIntPipe) version: number): Promise<{ content: ConnectionTable[] | string }> {
-        let connectionTables: ConnectionTable[] | string = await this._cardServise.getCardByIdAndVersion(id, version)
+        @Param('version') version?: string): Promise<{ content: ConnectionTable[] | string }> {
+        let setVersion: number = (version === undefined) ? null : parseInt(version)
+        let connectionTables: ConnectionTable[] | string = await this._cardServise.getCardByIdAndVersion(id, setVersion)
         return { content: connectionTables }
     }
 
+    @Render('put')
+    @Get('put')
+    async getPut() {
+
+    }
+
     @Put('put')
-    async createNewCard(@Body() data: { connectionTables: Prisma.ConnectionTableCreateManyInput[], accountCard: Prisma.AccountCardCreateInput }): Promise<{ message: string }> {
-        return { message: await this._cardServise.createNewCard(data.connectionTables, data.accountCard) }
+    async createNewCard(@Body() data): Promise<string> {
+        console.log(data)
+        return 'congratulations'
+    }
+
+    @Patch('patch')
+    async editCard(@Body() data: { connectionTables: Prisma.ConnectionTableCreateManyInput[], accountCard: Prisma.AccountCardCreateInput }): Promise<{ message: string }> {
+        return { message: await this._cardServise.editCard(data.connectionTables, data.accountCard) }
     }
 }

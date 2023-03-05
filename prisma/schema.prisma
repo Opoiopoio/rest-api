@@ -8,8 +8,9 @@ datasource db {
 }
 
 model AccountCard {
-  NumberVersion       Int               @id @default(autoincrement())
-  Id                  Int
+  Id                  Int               @id @default(autoincrement())
+  NumberVersion       Int
+  CardId              Int
   Name                String
   DateOfCreateVersion DateTime          @db.Timetz(6)
   Status              String
@@ -17,15 +18,15 @@ model AccountCard {
 }
 
 model ConnectionTable {
-  Id                       Int           @id @default(autoincrement())
-  AccountCardNumberVersion Int
-  FieldCardName            String
-  ValueStringId            Int?
-  ValueIntegerId           Int?
-  AccountCard              AccountCard   @relation(fields: [AccountCardNumberVersion], references: [NumberVersion], onDelete: NoAction, onUpdate: NoAction)
-  FieldCard                FieldCard     @relation(fields: [FieldCardName], references: [Name], onDelete: NoAction, onUpdate: NoAction)
-  ValueInteger             ValueInteger? @relation(fields: [ValueIntegerId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "ConnectionTable_ValueInteger_fkey")
-  ValueString              ValueString?  @relation(fields: [ValueStringId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "ConnectionTable_ValueString_fkey")
+  Id             Int           @id @default(autoincrement())
+  AccountCardId  Int
+  FieldCardName  String
+  ValueStringId  Int?
+  ValueIntegerId Int?
+  AccountCard    AccountCard   @relation(fields: [AccountCardId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "ConnectionTable_AccountCard_fkey")
+  FieldCard      FieldCard     @relation(fields: [FieldCardName], references: [Name], onDelete: NoAction, onUpdate: NoAction)
+  ValueInteger   ValueInteger? @relation(fields: [ValueIntegerId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "ConnectionTable_ValueInteger_fkey")
+  ValueString    ValueString?  @relation(fields: [ValueStringId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "ConnectionTable_ValueString_fkey")
 }
 
 model FieldCard {
