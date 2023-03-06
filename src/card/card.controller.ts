@@ -1,10 +1,15 @@
-import { Controller, Get, Put, Patch, Param, Body, Render, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Put, Patch, Param, Body, Render, ParseIntPipe, Res } from '@nestjs/common';
 import { AccountCard, ConnectionTable, Prisma } from '@prisma/client';
 import { AccountCardService } from 'src/account-card/account-card.service';
 
 @Controller('rest-api/card')
 export class CardController {
     constructor(private _cardServise: AccountCardService) { }
+
+    @Get('/')
+    redirect(@Res() res){
+        return res.redirect('/rest-api/card/list')
+    }
 
     @Render('index')
     @Get('list')
