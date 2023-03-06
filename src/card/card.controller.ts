@@ -2,7 +2,7 @@ import { Controller, Get, Put, Patch, Param, Body, Render, ParseIntPipe } from '
 import { AccountCard, ConnectionTable, Prisma } from '@prisma/client';
 import { AccountCardService } from 'src/account-card/account-card.service';
 
-@Controller('card')
+@Controller('rest-api/card')
 export class CardController {
     constructor(private _cardServise: AccountCardService) { }
 
