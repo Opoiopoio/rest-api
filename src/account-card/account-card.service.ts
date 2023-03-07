@@ -10,11 +10,22 @@ export class AccountCardService {
     //Вывод списка актуальных карточек
     async getActualCard(): Promise<AccountCard[] | null> {
         try {
-            return await this.prisma.accountCard.findMany({
+            let accountCards = await this.prisma.accountCard.findMany({
                 where: {
                     Status: "Actual"
                 }
             })
+
+            accountCards.forEach(accountCard => {
+                let condition: boolean = true
+                for (let i = 0; i < accountCards.length; i++) {
+                    if (accountCard.CardId === accountCards[i].CardId && !condition) {
+                        accountCards.splice(i, 1)
+                    }
+                    else if (accountCard.CardId === accountCards[i].CardId && condition)  condition = false
+                }
+            });
+            return accountCards
         }
         catch (e) {
             console.warn(e)
@@ -103,17 +114,26 @@ export class AccountCardService {
                     FieldCard: true,
                     ValueInteger: true,
                     ValueString: true
-                }
+                },
+                orderBy: { FieldCardName: 'asc' }
             })
 
             //Удаление из выборки повторяющихся элементов
             tables.forEach(function (table) {
                 let condition: boolean = true
                 for (let i = 0; i < tables.length; i++) {
-                    if (table.FieldCardName === tables[i].FieldCardName && condition) {
-                        tables.splice(i, i)
+                    if (table.FieldCardName === tables[i].FieldCardName
+                        && table.ValueIntegerId === tables[i].ValueIntegerId
+                        && table.ValueStringId === tables[i].ValueStringId
+                        && condition) {
+                        condition = false
                     }
-                    else condition = false
+                    else if (table.FieldCardName === tables[i].FieldCardName
+                        && table.ValueIntegerId === tables[i].ValueIntegerId
+                        && table.ValueStringId === tables[i].ValueStringId
+                        && !condition) {
+                        tables.splice(i, 1)
+                    }
                 }
             })
             if (tables.length === 0) {

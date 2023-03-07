@@ -69,6 +69,10 @@ function closeFieldCards() {
     $('.filling').remove()
 }
 
+$('tr').click(function () { 
+    $($(this).children()[2]).children().prop('checked', !$($(this).children()[2]).children().prop('checked')) 
+});
+
 $('#openFieldCards').click(openFiedCards)
 
 function openFiedCards() {

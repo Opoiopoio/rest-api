@@ -40,7 +40,7 @@ $(document).on('click', '#sendPatch', function (e) {
     if (card.Name === '') alert('Введите название карточки')
     else $.ajax({
         type: "PATCH",
-        url: "/card/patch",
+        url: "/rest-api/card/patch",
         data: {
             connectionTables: data, accountCard: card
         },

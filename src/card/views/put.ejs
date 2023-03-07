@@ -14,7 +14,7 @@
     <%- include('partials/header.ejs') %>
         <div class="container">
             <div class="col-4">
-                <form method="PUT" action="/card/put">
+                <form method="PUT" action="/rest-api/card/put">
                     <div class="form-floating mb-3 mt-3">
                         <input class="form-control" name="CardId" id="CardId" placeholder="Идентификатор карточки"
                             autocomplete="off" />
@@ -45,7 +45,7 @@
                             <% if (connectionTable.FieldCard.DataType==='String' ) { %>
                                 <%value=connectionTable.ValueString %>
                                     <% } else {value=connectionTable.ValueInteger} %>
-                                        <tr>
+                                        <tr class="link">
                                             <td id="<%= connectionTable.FieldCard.DataType %>">
                                                 <%= connectionTable.FieldCardName %>
                                             </td>

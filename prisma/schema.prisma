@@ -12,8 +12,8 @@ model AccountCard {
   NumberVersion       Int
   CardId              Int
   Name                String
-  DateOfCreateVersion DateTime          @default(now()) @db.Timetz(6)
   Status              String
+  DateOfCreateVersion DateTime          @default(now()) @db.Timestamptz(6)
   ConnectionTable     ConnectionTable[]
 }
 
