@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AccountCard, ConnectionTable, Prisma, FieldCard, ValueInteger, ValueString } from '@prisma/client';
+import { AccountCard, ConnectionTable, Prisma, FieldCard, ValueInteger, ValueString, ConnectionTableDeduplication } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 //Сервис для работы с учётными карточками
@@ -22,7 +22,7 @@ export class AccountCardService {
                     if (accountCard.CardId === accountCards[i].CardId && !condition) {
                         accountCards.splice(i, 1)
                     }
-                    else if (accountCard.CardId === accountCards[i].CardId && condition)  condition = false
+                    else if (accountCard.CardId === accountCards[i].CardId && condition) condition = false
                 }
             });
             return accountCards
@@ -105,6 +105,28 @@ export class AccountCardService {
         }
     }
 
+    async getDeduplicationFieldCards(): Promise<string | ConnectionTableDeduplication[]> {
+        try {
+            let tables = await this.prisma.connectionTableDeduplication.findMany({
+                include: {
+                    FieldCard: true,
+                    ValueInteger: true,
+                    ValueString: true
+                },
+                orderBy: { FieldCardName: 'asc' }
+            })
+            //Возврат сообщения пользователю в случае отсутствия полей
+            if (tables.length === 0) return 'Полей отсутствуют'
+            //Отправление полей на страницу 
+            return tables
+        }
+        catch (e) {
+            console.warn(e)
+            //Возврат сообщения при возникновении ошибки
+            return 'Произошла ошибка'
+        }
+    }
+
     async getFieldCards(): Promise<string | ConnectionTable[]> {
         try {
 
@@ -117,6 +139,11 @@ export class AccountCardService {
                 },
                 orderBy: { FieldCardName: 'asc' }
             })
+
+            if (tables.length === 0) {
+                //Возврат сообщения пользователю в случае отсутствия полей
+                return 'Поля отсутствуют'
+            }
 
             //Удаление из выборки повторяющихся элементов
             tables.forEach(function (table) {
@@ -136,14 +163,8 @@ export class AccountCardService {
                     }
                 }
             })
-            if (tables.length === 0) {
-                //Возврат сообщения пользователю
-                return 'Поля отсутствуют'
-            }
-            else {
-                //Отправление полей на страницу 
-                return tables
-            }
+            //Отправление полей на страницу 
+            return tables
         }
         catch (e) {
             console.warn(e)
@@ -156,8 +177,16 @@ export class AccountCardService {
         accountCard: Prisma.AccountCardCreateInput): Promise<string> {
         accountCard.NumberVersion = parseInt(String(accountCard.NumberVersion))
 
+        let checkCard = await this.prisma.accountCard.findFirst({
+            where: {
+                CardId: parseInt(String(accountCard.CardId))
+            }
+        })
+
+        if(checkCard != undefined) return 'Карточка с таким идентификатором присутствует в системе'
+
         //Вызов метода, который создаёт новую учётную карточку
-        var getCard = await this.createNewAccountCard(accountCard)
+        let getCard = await this.createNewAccountCard(accountCard)
 
         //Проверка на возврат ошибки
         if (typeof (getCard) === 'string') return getCard

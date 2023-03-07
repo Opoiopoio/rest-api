@@ -69,15 +69,22 @@ function closeFieldCards() {
     $('.filling').remove()
 }
 
-$('tr').click(function () { 
-    $($(this).children()[2]).children().prop('checked', !$($(this).children()[2]).children().prop('checked')) 
+$('tr').click(function () {
+    $($(this).children()[2]).children().prop('checked', !$($(this).children()[2]).children().prop('checked'))
 });
 
 $('#openFieldCards').click(openFiedCards)
 
+$('#openFieldCardsDeduplicated').click(function () {
+    $('#deduplication').css('display', 'block')
+    let filling = document.createElement('div')
+    filling.className = 'filling'
+    $('#deduplication').after(filling)
+})
+
 function openFiedCards() {
-    $('.field-card-container').css('display', 'block')
-    let filleng = document.createElement('div')
-    filleng.className = 'filling'
-    $('.field-card-container').after(filleng)
+    $('#duplication').css('display', 'block')
+    let filling = document.createElement('div')
+    filling.className = 'filling'
+    $('#duplication').after(filling)
 }

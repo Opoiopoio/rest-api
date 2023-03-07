@@ -25,12 +25,13 @@
                             autocomplete="off" />
                         <label for="Name" class="control-label">Название карточки</label>
                     </div>
-                    <button class="btn btn-primary" type="submit">Отправить</button>
-                    <button id="openFieldCards" class="btn btn-primary" type="button">Показать поля</button>
+                    <button class="btn btn-primary mb-3" type="submit">Отправить</button>
+                    <button id="openFieldCards" class="btn btn-primary mb-3" type="button">Показать поля</button>
+                    <button id="openFieldCardsDeduplicated" class="btn btn-primary" type="button">Показать поля с дедупликацией</button>
                 </form>
             </div>
         </div>
-        <div class="field-card-container">
+        <div class="field-card-container" id="duplication">
             <table class="table">
                 <thead>
                     <tr>
@@ -58,6 +59,36 @@
                 </tbody>
             </table>
         </div>
+
+        <div class="field-card-container" id="deduplication">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Название поля</th>
+                        <th>Значение поля</th>
+                        <th style="text-align: end;"><button type="button" class="btn-close"></button></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% dedupticationTables.forEach(function(connectionTable) { %>
+                        <% var value %>
+                            <% if (connectionTable.FieldCard.DataType==='String' ) { %>
+                                <%value=connectionTable.ValueString %>
+                                    <% } else {value=connectionTable.ValueInteger} %>
+                                        <tr class="link">
+                                            <td id="<%= connectionTable.FieldCard.DataType %>">
+                                                <%= connectionTable.FieldCardName %>
+                                            </td>
+                                            <td id="<%= value.Id %>">
+                                                <%= value.Value %>
+                                            </td>
+                                            <td><input class="form-check-input" type="checkbox" /></td>
+                                        </tr>
+                                        <% }) %>
+                </tbody>
+            </table>
+        </div>
+
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
         <script src="/js/put.js"></script>
 </body>

@@ -7,7 +7,7 @@ export class CardController {
     constructor(private _cardServise: AccountCardService) { }
 
     @Get('/')
-    redirect(@Res() res){
+    redirect(@Res() res) {
         return res.redirect('/rest-api/card/list')
     }
 
@@ -36,8 +36,14 @@ export class CardController {
 
     @Render('put')
     @Get('put')
-    async getPut(): Promise<{ content: string | ConnectionTable[] }> {
-        return { content: await this._cardServise.getFieldCards() }
+    async getPut(): Promise<{
+        content: string | ConnectionTable[],
+        dedupticationTables: string | ConnectionTable[]
+    }> {
+        return {
+            content: await this._cardServise.getFieldCards(),
+            dedupticationTables: await this._cardServise.getDeduplicationFieldCards()
+        }
     }
 
     @Put('put')

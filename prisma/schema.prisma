@@ -8,13 +8,14 @@ datasource db {
 }
 
 model AccountCard {
-  Id                  Int               @id @default(autoincrement())
-  NumberVersion       Int
-  CardId              Int
-  Name                String
-  Status              String
-  DateOfCreateVersion DateTime          @default(now()) @db.Timestamptz(6)
-  ConnectionTable     ConnectionTable[]
+  Id                           Int                            @id @default(autoincrement())
+  NumberVersion                Int
+  CardId                       Int
+  Name                         String
+  Status                       String
+  DateOfCreateVersion          DateTime                       @default(now()) @db.Timestamptz(6)
+  ConnectionTable              ConnectionTable[]
+  ConnectionTableDeduplication ConnectionTableDeduplication[]
 }
 
 model ConnectionTable {
@@ -30,19 +31,34 @@ model ConnectionTable {
 }
 
 model FieldCard {
-  Name            String            @id
-  DataType        String
-  ConnectionTable ConnectionTable[]
+  Name                         String                         @id
+  DataType                     String
+  ConnectionTable              ConnectionTable[]
+  ConnectionTableDeduplication ConnectionTableDeduplication[]
 }
 
 model ValueInteger {
-  Id              Int               @id @default(autoincrement())
-  Value           Int               @unique
-  ConnectionTable ConnectionTable[]
+  Id                           Int                           @id @default(autoincrement())
+  Value                        Int                           @unique
+  ConnectionTable              ConnectionTable[]
+  ConnectionTableDeduplication ConnectionTableDeduplication?
 }
 
 model ValueString {
-  Id              Int               @id(map: "Pk_ValueString") @default(autoincrement())
-  Value           String            @unique(map: "ValueStrings_Value_key")
-  ConnectionTable ConnectionTable[]
+  Id                           Int                           @id(map: "Pk_ValueString") @default(autoincrement())
+  Value                        String                        @unique(map: "ValueStrings_Value_key")
+  ConnectionTable              ConnectionTable[]
+  ConnectionTableDeduplication ConnectionTableDeduplication?
+}
+
+model ConnectionTableDeduplication {
+  Id             Int           @id @default(autoincrement())
+  AccountCardId  Int
+  FieldCardName  String
+  ValueStringId  Int?          @unique
+  ValueIntegerId Int?          @unique
+  AccountCard    AccountCard   @relation(fields: [AccountCardId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "ConnectionTableDeduplication_AccountCard_fkey")
+  FieldCard      FieldCard     @relation(fields: [FieldCardName], references: [Name], onDelete: NoAction, onUpdate: NoAction)
+  ValueInteger   ValueInteger? @relation(fields: [ValueIntegerId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "ConnectionTableDeduplication_ValueInteger_fkey")
+  ValueString    ValueString?  @relation(fields: [ValueStringId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "ConnectionTableDeduplication_ValueString_fkey")
 }
