@@ -2,31 +2,36 @@ import { Controller, Get, Put, Patch, Param, Body, Render, ParseIntPipe, Res } f
 import { AccountCard, ConnectionTable, Prisma } from '@prisma/client';
 import { AccountCardService } from 'src/account-card/account-card.service';
 
-@Controller('rest-api/card')
+@Controller('rest-api')
 export class CardController {
     constructor(private _cardServise: AccountCardService) { }
 
     @Get('/')
-    redirect(@Res() res) {
+    redirectFromRestAPI(@Res() res) {
+        return res.redirect('/rest-api/card/list')
+    }
+
+    @Get('/card')
+    redirectFromRestAPICard(@Res() res) {
         return res.redirect('/rest-api/card/list')
     }
 
     @Render('index')
-    @Get('list')
+    @Get('/card/list')
     async getActualCard(): Promise<{ content: AccountCard[] | string }> {
         let cards: AccountCard[] = await this._cardServise.getActualCard()
         return { content: (cards.length === 0) ? "Карточек нет" : cards }
     }
 
     @Render('versions')
-    @Get('versions/:id')
+    @Get('/card/versions/:id')
     async getCardById(@Param('id', ParseIntPipe) id: number): Promise<{ content: AccountCard[] | string }> {
         let cards: AccountCard[] = await this._cardServise.getCardById(id)
         return { content: (cards.length === 0) ? "Карточек нет" : cards }
     }
 
     @Render('field')
-    @Get('get/:id/:version?')
+    @Get('/card/get/:id/:version?')
     async getCardByIdAndVersion(@Param('id', ParseIntPipe) id: number,
         @Param('version') version?: string): Promise<{ content: ConnectionTable[] | string }> {
         let setVersion: number = (version === undefined) ? null : parseInt(version)
@@ -35,7 +40,7 @@ export class CardController {
     }
 
     @Render('put')
-    @Get('put')
+    @Get('/card/put')
     async getPut(): Promise<{
         content: string | ConnectionTable[],
         dedupticationTables: string | ConnectionTable[]
@@ -46,7 +51,7 @@ export class CardController {
         }
     }
 
-    @Put('put')
+    @Put('/card/put')
     async createNewCard(@Body() data: {
         connectionTables: Prisma.ConnectionTableCreateManyInput[],
         accountCard: Prisma.AccountCardCreateInput
@@ -54,7 +59,7 @@ export class CardController {
         return { message: await this._cardServise.createNewCard(data.connectionTables, data.accountCard) }
     }
 
-    @Patch('patch')
+    @Patch('/card/patch')
     async editCard(@Body() data: {
         connectionTables: Prisma.ConnectionTableCreateManyInput[],
         accountCard: Prisma.AccountCardCreateInput
