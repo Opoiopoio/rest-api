@@ -58,14 +58,15 @@ export class CardController {
         fieldCardValue: { Value: string }[]
     }): Promise<{ message: string }> {
         console.log(data)
-        return { message: await this._cardServise.createNewCard(data.accountCard,data.fieldCard, data.fieldCardValue) }
+        return { message: await this._cardServise.createNewCard(data.accountCard, data.fieldCard, data.fieldCardValue) }
     }
 
     @Post('/card/patch')
     async editCard(@Body() data: {
-        connectionTables: Prisma.ConnectionTableCreateManyInput[],
-        accountCard: Prisma.AccountCardCreateInput
+        accountCard: Prisma.AccountCardCreateInput,
+        fieldCard: Prisma.FieldCardCreateManyInput[],
+        fieldCardValue: { Value: string }[]
     }): Promise<{ message: string }> {
-        return { message: await this._cardServise.editCard(data.connectionTables, data.accountCard) }
+        return { message: await this._cardServise.editCard(data.accountCard, data.fieldCard, data.fieldCardValue) }
     }
 }

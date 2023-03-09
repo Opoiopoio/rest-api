@@ -49,7 +49,7 @@ $(document).on('click', '#sendPatch', function (e) {
         type: "POST",
         url: "/api/card/patch",
         data: {
-            accountCard: card, connectionTables: data
+            accountCard: card, fieldCard: dataField, fieldCardValue: dataValue
         },
         dataType: "json",
         success: function (response) {
@@ -57,14 +57,6 @@ $(document).on('click', '#sendPatch', function (e) {
         }
     });
 });
-function createElement(fieldNewElement) {
-    let element = document.createElement(fieldNewElement.tag)
-    if (fieldNewElement.class != undefined) element.className = fieldNewElement.class;
-    if (fieldNewElement.id != undefined) element.id = fieldNewElement.id;
-    if (fieldNewElement.text != undefined) element.textContent = fieldNewElement.text;
-    if (fieldNewElement.type != undefined) element.type = fieldNewElement.type;
-    return element
-}
 
 $('#patch').click(function (e) {
     e.preventDefault();
@@ -76,6 +68,8 @@ $('#patch').click(function (e) {
 
     let sendButton = createElement({ tag: 'button', class: 'btn btn-primary', id: 'sendPatch', text: 'Отправить' })
 
+    $(this).remove();
+    $('.scroll').prop('hidden', false)
     $('#data-container').append(inputGroupName);
     $('#data-container').append(sendButton);
 })

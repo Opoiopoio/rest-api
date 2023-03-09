@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AccountCard, ConnectionTable, Prisma, FieldCard, ValueInteger, ValueString, ConnectionTableDeduplication } from '@prisma/client';
+import { type } from 'os';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 //Сервис для работы с учётными карточками
@@ -109,6 +110,7 @@ export class AccountCardService {
         try {
             let tables = await this.prisma.connectionTableDeduplication.findMany({
                 include: {
+                    AccountCard: true,
                     FieldCard: true,
                     ValueInteger: true,
                     ValueString: true
@@ -133,6 +135,7 @@ export class AccountCardService {
             //Получение всех
             let tables = await this.prisma.connectionTable.findMany({
                 include: {
+                    AccountCard: true,
                     FieldCard: true,
                     ValueInteger: true,
                     ValueString: true
@@ -198,8 +201,9 @@ export class AccountCardService {
         }
     }
 
-    async editCard(arrayTables: Prisma.ConnectionTableCreateManyInput[],
-        accountCard: Prisma.AccountCardCreateInput): Promise<string> {
+    async editCard(accountCard: Prisma.AccountCardCreateInput,
+        fieldCard: Prisma.FieldCardCreateManyInput[],
+        fieldCardValue: { Value: string }[]): Promise<string> {
         try {
             accountCard.NumberVersion = parseInt(String(accountCard.NumberVersion)) + 1
 
@@ -210,7 +214,7 @@ export class AccountCardService {
             if (typeof (getCard) === 'string') return getCard
             else {
                 //Вызов метода для привязки полей к карточке
-                return await this.createNewConnectionTables(arrayTables, getCard)
+                return await this.createNewFieldsCards(getCard, fieldCard, fieldCardValue)
             }
         }
         catch (e) {
@@ -292,7 +296,6 @@ export class AccountCardService {
                 })
             }
         }
-        console.log(errors)
         return errors.length === 0 ? 'Успешно' : 'Поля ' + errors.join(', ') + ' присутствуют в системе'
     }
 
