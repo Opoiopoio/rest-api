@@ -25,7 +25,13 @@
     overflow-y: scroll;
 }
 
-::-webkit-scrollbar {
+.scroll {
+    overflow-y: auto;
+
+    max-height: 50vh;
+}
+
+.field-card-container::-webkit-scrollbar {
     display: none;
 }
 

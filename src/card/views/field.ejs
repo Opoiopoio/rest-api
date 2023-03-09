@@ -22,7 +22,7 @@
                     <h3 id="cardVersion">Номер версии: <%= content[0].AccountCard.NumberVersion %>
                     </h3>
                     <div class="row">
-                        <div class="col-4">
+                        <div class="col-6">
                             <table class="table">
                                 <thead>
                                     <tr>
@@ -50,7 +50,7 @@
                             <button id="patch" class="btn btn-success">patch</button>
                             <div id="data-container"></div>
                         </div>
-                        <div class="col-4 scroll">
+                        <div class="col-6 scroll" hidden>
                             <div class="form-floating mb-3 mt-3">
                                 <input class="form-control" id="fieldCardName" placeholder="Название поля карточки"
                                     autocomplete="off" />
@@ -70,6 +70,7 @@
                     <% } %>
         </div>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+        <script src="/js/site.js"></script>
         <script src="/js/field.js"></script>
 </body>
 

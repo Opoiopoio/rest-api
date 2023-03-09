@@ -13,7 +13,7 @@
 <body>
     <%- include('partials/header.ejs') %>
         <div class="container">
-            <div class="row">
+            <div class="row justify-content-center">
                 <div class="col-4">
                     <form method="POST" action="/api/card/put">
                         <div class="form-floating mb-3 mt-3">
@@ -34,11 +34,13 @@
                 </div>
                 <div class="col-4 scroll">
                     <div class="form-floating mb-3 mt-3">
-                        <input class="form-control" id="fieldCardName" placeholder="Название поля карточки" autocomplete="off" />
+                        <input class="form-control" id="fieldCardName" placeholder="Название поля карточки"
+                            autocomplete="off" />
                         <label for="fieldCardName" class="control-label">Название поля карточки</label>
                     </div>
                     <div class="form-floating mb-3">
-                        <input class="form-control" id="cardValue" placeholder="Значение поля карточки" autocomplete="off" />
+                        <input class="form-control" id="cardValue" placeholder="Значение поля карточки"
+                            autocomplete="off" />
                         <label for="cardValue" class="control-label">Значение поля карточки</label>
                     </div>
                     <div class="justify-content-between">
@@ -52,6 +54,8 @@
             <table class="table">
                 <thead>
                     <tr>
+                        <th>Название карточки</th>
+                        <th>Номер версии карточки</th>
                         <th>Название поля</th>
                         <th>Значение поля</th>
                         <th style="text-align: end;"><button type="button" class="btn-close"></button></th>
@@ -63,14 +67,19 @@
                             <% if (connectionTable.FieldCard.DataType==='String' ) { %>
                                 <%value=connectionTable.ValueString %>
                                     <% } else {value=connectionTable.ValueInteger} %>
-                                        <tr class="link">
+                                        <tr>
+                                            <td>
+                                                <%= connectionTable.AccountCard.Name%>
+                                            </td>
+                                            <td>
+                                                <%= connectionTable.AccountCard.NumberVersion%>
+                                            </td>
                                             <td id="<%= connectionTable.FieldCard.DataType %>">
                                                 <%= connectionTable.FieldCardName %>
                                             </td>
                                             <td id="<%= value.Id %>">
                                                 <%= value.Value %>
                                             </td>
-                                            <td><input class="form-check-input" type="checkbox" /></td>
                                         </tr>
                                         <% }) %>
                 </tbody>
@@ -81,6 +90,8 @@
             <table class="table">
                 <thead>
                     <tr>
+                        <th>Название карточки</th>
+                        <th>Номер версии карточки</th>
                         <th>Название поля</th>
                         <th>Значение поля</th>
                         <th style="text-align: end;"><button type="button" class="btn-close"></button></th>
@@ -92,14 +103,19 @@
                             <% if (connectionTable.FieldCard.DataType==='String' ) { %>
                                 <%value=connectionTable.ValueString %>
                                     <% } else {value=connectionTable.ValueInteger} %>
-                                        <tr class="link">
+                                        <tr>
+                                            <td>
+                                                <%= connectionTable.AccountCard.Name%>
+                                            </td>
+                                            <td>
+                                                <%= connectionTable.AccountCard.NumberVersion%>
+                                            </td>
                                             <td id="<%= connectionTable.FieldCard.DataType %>">
                                                 <%= connectionTable.FieldCardName %>
                                             </td>
                                             <td id="<%= value.Id %>">
                                                 <%= value.Value %>
                                             </td>
-                                            <td><input class="form-check-input" type="checkbox" /></td>
                                         </tr>
                                         <% }) %>
                 </tbody>
@@ -107,6 +123,7 @@
         </div>
 
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+        <script src="/js/site.js"></script>
         <script src="/js/put.js"></script>
 </body>
 
