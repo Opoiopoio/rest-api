@@ -1,43 +1,48 @@
+
 $('form').submit(function (e) {
     e.preventDefault();
 
     var onForm = this
-    let checkboxes = $('input[type=checkbox]')
 
-    class ConnectionTable {
-        AccountCardId
-        FieldCardName
-        ValueIntegerId
-        ValueStringId
-        constructor(checkbox) {
-            this.FieldCardName = $($(checkbox).parent().parent().children()[0]).text().trim()
-            let fieldCardDataType = $($(checkbox).parent().parent().children()[0]).attr('id')
-            if (fieldCardDataType === 'String') {
-                this.ValueStringId = $($(checkbox).parent().parent().children()[1]).attr('id')
-            }
-            else {
-                this.ValueIntegerId = $($(checkbox).parent().parent().children()[1]).attr('id')
-            }
+    class FieldCard {
+        Name
+        DataType
+        constructor(id) {
+            this.Name = $('input#fieldCardName')[id].value
+        }
+    }
+    class Value {
+        Value
+        constructor(id) {
+            this.Value = $('input#cardValue')[id].value
         }
     }
 
-    var data = []
-    for (let i = 0; i < checkboxes.length; i++) {
-        if ($(checkboxes[i]).prop('checked') === true) {
-            let table = new ConnectionTable(checkboxes[i])
-            data.push(table)
+    var dataValue = []
+    var dataField = []
+    let confirm = false
+    formFloating = $('div.scroll div.form-floating')
+    for (let i = 0; i < formFloating.length / 2; i++) {
+        let value = new Value(i)
+        let field = new FieldCard(i)
+        if (value.Value === '' || field.Name === '') {
+            confirm = true
+            break
+        }
+        else {
+            dataValue.push(value)
+            dataField.push(field)
         }
     }
     if ($('#CardId').val().trim() === '' || $('#Name').val().trim() === '')
         alert('Заполните поля "Идентификатор карточки" и "Название карточки"')
     else
-        if (data.length === 0) {
-            openFiedCards()
-            alert('Выберите поля')
+        if (confirm) {
+            alert('Заполните поля')
         }
         else {
             var card = {
-                NumberVersion: 1,
+                NumberVersion: null,
                 CardId: $('#CardId').val(),
                 Name: $('#Name').val(),
                 DateOfCreateVersion: null,
@@ -47,7 +52,7 @@ $('form').submit(function (e) {
                 $.ajax({
                     type: $(onForm).attr('method'),
                     url: $(onForm).attr('action'),
-                    data: { connectionTables: data, accountCard: card },
+                    data: { accountCard: card, fieldCard: dataField, fieldCardValue: dataValue },
                     dataType: 'json',
                     success: function (response) {
                         alert(response.message)
@@ -88,3 +93,67 @@ function openFiedCards() {
     filling.className = 'filling'
     $('#duplication').after(filling)
 }
+
+function createElement(fieldNewElement) {
+    let element = document.createElement(fieldNewElement.tag)
+    if (fieldNewElement.class != undefined) element.className = fieldNewElement.class;
+    if (fieldNewElement.id != undefined) element.id = fieldNewElement.id;
+    if (fieldNewElement.text != undefined) element.textContent = fieldNewElement.text;
+    if (fieldNewElement.type != undefined) element.type = fieldNewElement.type;
+    if (fieldNewElement.placeholder != undefined) element.placeholder = fieldNewElement.placeholder
+    if (fieldNewElement.autocomplete != undefined) element.autocomplete = fieldNewElement.autocomplete
+    if (fieldNewElement.for != undefined) element.for = fieldNewElement.for
+    return element
+}
+
+function createFieldCardName(formFloatingFieldCardName) {
+    let formControl = createElement({
+        tag: 'input',
+        class: 'form-control',
+        id: 'fieldCardName',
+        placeholder: 'Название поля карточки',
+        autocomplete: "off"
+    })
+    let label = createElement({
+        tag: 'label',
+        class: 'control-label',
+        for: 'fieldCardName',
+        text: 'Название поля карточки'
+    })
+    formFloatingFieldCardName.append(formControl)
+    formFloatingFieldCardName.append(label)
+}
+
+function createFieldCardValue(formFloatingFieldCardName) {
+    let formControl = createElement({
+        tag: 'input',
+        class: 'form-control',
+        id: 'cardValue',
+        placeholder: 'Значение поля карточки',
+        autocomplete: "off"
+    })
+    let label = createElement({
+        tag: 'label',
+        class: 'control-label',
+        for: 'cardValue',
+        text: 'Значение поля карточки'
+    })
+    formFloatingFieldCardName.append(formControl)
+    formFloatingFieldCardName.append(label)
+}
+
+$('#add').click(function () {
+    let formFloatingFieldCardName = createElement({ tag: 'div', class: 'form-floating mb-3' })
+    createFieldCardName(formFloatingFieldCardName)
+    let formFloatingFieldCardValue = createElement({ tag: 'div', class: 'form-floating mb-3' })
+    createFieldCardValue(formFloatingFieldCardValue)
+    $(this).parent().before(formFloatingFieldCardName);
+    $(this).parent().before(formFloatingFieldCardValue);
+})
+
+$('#delete').click(function () {
+    if ($('.form-floating').length > 5) {
+        $('.form-floating').last().remove()
+        $('.form-floating').last().remove()
+    }
+})

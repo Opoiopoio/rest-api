@@ -1,19 +1,19 @@
-import { Controller, Get, Put, Patch, Param, Body, Render, ParseIntPipe, Res } from '@nestjs/common';
+import { Controller, Get, Put, Param, Body, Render, ParseIntPipe, Res, Post } from '@nestjs/common';
 import { AccountCard, ConnectionTable, Prisma } from '@prisma/client';
 import { AccountCardService } from 'src/account-card/account-card.service';
 
-@Controller('rest-api')
+@Controller('api')
 export class CardController {
     constructor(private _cardServise: AccountCardService) { }
 
     @Get('/')
     redirectFromRestAPI(@Res() res) {
-        return res.redirect('/rest-api/card/list')
+        return res.redirect('/api/card/list')
     }
 
     @Get('/card')
     redirectFromRestAPICard(@Res() res) {
-        return res.redirect('/rest-api/card/list')
+        return res.redirect('/api/card/list')
     }
 
     @Render('index')
@@ -51,15 +51,17 @@ export class CardController {
         }
     }
 
-    @Put('/card/put')
+    @Post('/card/put')
     async createNewCard(@Body() data: {
-        connectionTables: Prisma.ConnectionTableCreateManyInput[],
-        accountCard: Prisma.AccountCardCreateInput
+        accountCard: Prisma.AccountCardCreateInput,
+        fieldCard: Prisma.FieldCardCreateManyInput[],
+        fieldCardValue: { Value: string }[]
     }): Promise<{ message: string }> {
-        return { message: await this._cardServise.createNewCard(data.connectionTables, data.accountCard) }
+        console.log(data)
+        return { message: await this._cardServise.createNewCard(data.accountCard,data.fieldCard, data.fieldCardValue) }
     }
 
-    @Patch('/card/patch')
+    @Post('/card/patch')
     async editCard(@Body() data: {
         connectionTables: Prisma.ConnectionTableCreateManyInput[],
         accountCard: Prisma.AccountCardCreateInput

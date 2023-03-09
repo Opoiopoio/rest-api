@@ -6,6 +6,6 @@ export class AppController {
 
   @Get('/')
   redirect(@Res() res) {
-    return res.redirect('/rest-api/card/list')
+    return res.redirect('/api/card/list')
   }
 }

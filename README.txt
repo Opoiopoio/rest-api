@@ -21,14 +21,14 @@ npx prisma generate
 
 Маршрутизация:
 
-localhost:3000/rest-api/card/list - пункт /card/list из ТЗ
+localhost:3000/api/card/list - пункт /card/list из ТЗ
 
-localhost:3000/rest-api/card/versions/1 - пункт /card/versions/:id из ТЗ
+localhost:3000/api/card/versions/1 - пункт /card/versions/:id из ТЗ
 
-localhost:3000/rest-api/card/get/1/1 - пункт /card/get/:1[/:version] из ТЗ
+localhost:3000/api/card/get/1/1 - пункт /card/get/:1[/:version] из ТЗ
 С этой же страницы можно отправить запрос PATCH, из пункта /card/patch ТЗ
 
-localhost:3000/rest-api/card/put - выводит страницу для создания новой карточки.
+localhost:3000/api/card/put - выводит страницу для создания новой карточки.
 После ввода данных и выбора полей отправляется PUT запрос, пункт /card/put из ТЗ.
 Из-за сложностей в понимании термина 'дедупликация' было добавлено 2 таблицы: 
 ConnectionTable и ConnectionTableDeduplication.

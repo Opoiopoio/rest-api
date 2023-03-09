@@ -5,30 +5,37 @@ $(document).on('click', '#sendPatch', function (e) {
         let returnId = stringId.slice(stringId.indexOf(': ') + 2, stringId.length).trim()
         return returnId
     }
-    class ConnectionTable {
-        AccountCardId
-        FieldCardName
-        ValueIntegerId
-        ValueStringId
-        constructor(tr) {
-            this.FieldCardName = $($(tr).children()[0]).text().trim()
-            let fieldCardDataType = $($(tr).children()[0]).attr('id')
-            if (fieldCardDataType === 'String') {
-                this.ValueStringId = $($(tr).children()[1]).attr('id')
-            }
-            else {
-                this.ValueIntegerId = $($(tr).children()[1]).attr('id')
-            }
+
+    class FieldCard {
+        Name
+        DataType
+        constructor(id) {
+            this.Name = $('input#fieldCardName')[id].value
+        }
+    }
+    class Value {
+        Value
+        constructor(id) {
+            this.Value = $('input#cardValue')[id].value
         }
     }
 
-    var data = []
-    let tbody = $('tbody')
-    for (let i = 0; i < tbody.length; i++) {
-        let conTable = new ConnectionTable(tbody.children()[i])
-        data.push(conTable)
+    var dataValue = []
+    var dataField = []
+    let confirm = false
+    formFloating = $('div.scroll div.form-floating')
+    for (let i = 0; i < formFloating.length / 2; i++) {
+        let value = new Value(i)
+        let field = new FieldCard(i)
+        if (value.Value === '' || field.Name === '') {
+            confirm = true
+            break
+        }
+        else {
+            dataValue.push(value)
+            dataField.push(field)
+        }
     }
-    console.log(data)
 
     let card = {
         NumberVersion: getData('#cardVersion'),
@@ -39,10 +46,10 @@ $(document).on('click', '#sendPatch', function (e) {
     }
     if (card.Name === '') alert('Введите название карточки')
     else $.ajax({
-        type: "PATCH",
-        url: "/rest-api/card/patch",
+        type: "POST",
+        url: "/api/card/patch",
         data: {
-            connectionTables: data, accountCard: card
+            accountCard: card, connectionTables: data
         },
         dataType: "json",
         success: function (response) {
