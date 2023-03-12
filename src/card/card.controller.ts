@@ -59,7 +59,6 @@ export class CardController {
         fieldCard: Prisma.FieldCardCreateManyInput[],
         fieldCardValue: { Value: string }[]
     }): Promise<{ message: string | ValidateMessage[] }> {
-        console.log(data)
         return { message: await this._cardServise.createNewCard(data.accountCard, data.fieldCard, data.fieldCardValue) }
     }
 

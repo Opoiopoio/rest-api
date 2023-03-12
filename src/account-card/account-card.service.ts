@@ -313,7 +313,6 @@ export class AccountCardService {
                     Value: fieldCardValue.Value
                 }
             })
-            console.log(checkValue)
             if (checkValue === null)
                 return await prisma.valueString.create({ data: <Prisma.ValueStringCreateManyInput>fieldCardValue })
             else return checkValue
