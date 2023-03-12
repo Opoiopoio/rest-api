@@ -1,6 +1,6 @@
-import { Controller, Get, Put, Param, Body, Render, ParseIntPipe, Res, Post } from '@nestjs/common';
+import { Controller, Get, Put, Param, Body, Render, ParseIntPipe, Res, Post, Patch } from '@nestjs/common';
 import { AccountCard, ConnectionTable, Prisma } from '@prisma/client';
-import { AccountCardService } from 'src/account-card/account-card.service';
+import { AccountCardService, ValidateMessage } from 'src/account-card/account-card.service';
 
 @Controller('api')
 export class CardController {
@@ -18,8 +18,10 @@ export class CardController {
 
     @Render('index')
     @Get('/card/list')
-    async getActualCard(): Promise<{ content: AccountCard[] | string }> {
-        let cards: AccountCard[] = await this._cardServise.getActualCard()
+    async getActualCard():
+        Promise<{ content: (Prisma.PickArray<Prisma.AccountCardGroupByOutputType, ("CardId" | "Name")[]> & {})[] | string }> {
+        let cards: (Prisma.PickArray<Prisma.AccountCardGroupByOutputType, ("CardId" | "Name")[]> & {})[]
+            = await this._cardServise.getActualCard()
         return { content: (cards.length === 0) ? "Карточек нет" : cards }
     }
 
@@ -51,22 +53,23 @@ export class CardController {
         }
     }
 
-    @Post('/card/put')
+    @Put('/card/put')
     async createNewCard(@Body() data: {
         accountCard: Prisma.AccountCardCreateInput,
         fieldCard: Prisma.FieldCardCreateManyInput[],
         fieldCardValue: { Value: string }[]
-    }): Promise<{ message: string }> {
+    }): Promise<{ message: string | ValidateMessage[] }> {
         console.log(data)
         return { message: await this._cardServise.createNewCard(data.accountCard, data.fieldCard, data.fieldCardValue) }
     }
 
-    @Post('/card/patch')
+    @Patch('/card/patch')
     async editCard(@Body() data: {
         accountCard: Prisma.AccountCardCreateInput,
-        fieldCard: Prisma.FieldCardCreateManyInput[],
-        fieldCardValue: { Value: string }[]
-    }): Promise<{ message: string }> {
-        return { message: await this._cardServise.editCard(data.accountCard, data.fieldCard, data.fieldCardValue) }
+        fieldsCards: Prisma.FieldCardCreateManyInput[],
+        fieldsCardsValues: { Value: string }[]
+        connectionTables: Prisma.ConnectionTableCreateManyInput[]
+    }): Promise<{ message: string | ValidateMessage[] }> {
+        return { message: await this._cardServise.editCard(data.accountCard, data.fieldsCards, data.fieldsCardsValues, data.connectionTables) }
     }
 }

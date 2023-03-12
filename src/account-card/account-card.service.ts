@@ -1,7 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { AccountCard, ConnectionTable, Prisma, FieldCard, ValueInteger, ValueString, ConnectionTableDeduplication } from '@prisma/client';
-import { type } from 'os';
+import { Stats } from 'fs';
 import { PrismaService } from 'src/prisma/prisma.service';
+
+export type ValidateMessage = {
+    Id: number,
+    Message: string
+}
 
 //Сервис для работы с учётными карточками
 @Injectable()
@@ -9,23 +14,14 @@ export class AccountCardService {
     constructor(private prisma: PrismaService) { }
 
     //Вывод списка актуальных карточек
-    async getActualCard(): Promise<AccountCard[] | null> {
+    async getActualCard(): Promise<(Prisma.PickArray<Prisma.AccountCardGroupByOutputType, ("CardId" | "Name")[]> & {})[] | null> {
         try {
-            let accountCards = await this.prisma.accountCard.findMany({
+            let accountCards = await this.prisma.accountCard.groupBy({
+                by: ['CardId', 'Name'],
                 where: {
                     Status: "Actual"
                 }
             })
-
-            accountCards.forEach(accountCard => {
-                let condition: boolean = true
-                for (let i = 0; i < accountCards.length; i++) {
-                    if (accountCard.CardId === accountCards[i].CardId && !condition) {
-                        accountCards.splice(i, 1)
-                    }
-                    else if (accountCard.CardId === accountCards[i].CardId && condition) condition = false
-                }
-            });
             return accountCards
         }
         catch (e) {
@@ -39,7 +35,8 @@ export class AccountCardService {
         try {
             return await this.prisma.accountCard.findMany({
                 where: {
-                    CardId: id
+                    CardId: id,
+                    Status: 'Actual'
                 }
             })
         }
@@ -58,7 +55,8 @@ export class AccountCardService {
                 card = await this.prisma.accountCard.findFirst({
                     where: {
                         CardId: id,
-                        NumberVersion: version
+                        NumberVersion: version,
+                        Status: 'Actual'
                     }
                 })
             }
@@ -132,7 +130,7 @@ export class AccountCardService {
     async getFieldCards(): Promise<string | ConnectionTable[]> {
         try {
 
-            //Получение всех
+            //Получение всех таблиц соединений
             let tables = await this.prisma.connectionTable.findMany({
                 include: {
                     AccountCard: true,
@@ -148,24 +146,6 @@ export class AccountCardService {
                 return 'Поля отсутствуют'
             }
 
-            //Удаление из выборки повторяющихся элементов
-            tables.forEach(function (table) {
-                let condition: boolean = true
-                for (let i = 0; i < tables.length; i++) {
-                    if (table.FieldCardName === tables[i].FieldCardName
-                        && table.ValueIntegerId === tables[i].ValueIntegerId
-                        && table.ValueStringId === tables[i].ValueStringId
-                        && condition) {
-                        condition = false
-                    }
-                    else if (table.FieldCardName === tables[i].FieldCardName
-                        && table.ValueIntegerId === tables[i].ValueIntegerId
-                        && table.ValueStringId === tables[i].ValueStringId
-                        && !condition) {
-                        tables.splice(i, 1)
-                    }
-                }
-            })
             //Отправление полей на страницу 
             return tables
         }
@@ -179,7 +159,7 @@ export class AccountCardService {
     async createNewCard(accountCard: Prisma.AccountCardCreateInput,
         fieldCard: Prisma.FieldCardCreateManyInput[],
         fieldCardValue: { Value: string }[]
-    ): Promise<string> {
+    ): Promise<string | ValidateMessage[]> {
         accountCard.NumberVersion = parseInt(String(accountCard.NumberVersion))
 
         let checkCard = await this.prisma.accountCard.findFirst({
@@ -203,24 +183,63 @@ export class AccountCardService {
 
     async editCard(accountCard: Prisma.AccountCardCreateInput,
         fieldCard: Prisma.FieldCardCreateManyInput[],
-        fieldCardValue: { Value: string }[]): Promise<string> {
+        fieldCardValue: { Value: string }[],
+        connectionTables: Prisma.ConnectionTableCreateManyInput[]): Promise<string | ValidateMessage[]> {
         try {
-            accountCard.NumberVersion = parseInt(String(accountCard.NumberVersion)) + 1
-
             //Вызов метода, который создаёт новую учётную карточку
-            var getCard = await this.createNewAccountCard(accountCard)
+            var card = await this.editAccountCard(accountCard)
 
             //Проверка на возврат ошибки
-            if (typeof (getCard) === 'string') return getCard
+            if (typeof (card) === 'string') return card
             else {
-                //Вызов метода для привязки полей к карточке
-                return await this.createNewFieldsCards(getCard, fieldCard, fieldCardValue)
+                if (await this.createNewConnectionTables(connectionTables, card) === 'Успешно') {
+                    //Вызов метода для привязки полей к карточке
+                    return await this.createNewFieldsCards(card, fieldCard, fieldCardValue)
+                }
             }
         }
         catch (e) {
             console.warn(e)
             //Возврат сообщения при возникновении ошибки
             return "Произошла ошибка при создании карточки"
+        }
+    }
+
+    private async editAccountCard(accountCard: Prisma.AccountCardUncheckedCreateInput): Promise<AccountCard | string> {
+        try {
+            accountCard.CardId = parseInt(String(accountCard.CardId))
+            accountCard.NumberVersion = parseInt(String(accountCard.NumberVersion))
+            let getCard = await this.prisma.$transaction(async (prisma) => {
+                let card: Prisma.AccountCardWhereUniqueInput = await prisma.accountCard.findFirst({
+                    where: {
+                        NumberVersion: accountCard.NumberVersion,
+                        CardId: accountCard.CardId
+                    }
+                })
+
+                await prisma.accountCard.update({
+                    where: {
+                        Id: card.Id
+                    },
+                    data: accountCard
+                })
+
+                let lastCardThisVersion = await prisma.accountCard.findFirst({
+                    where: { CardId: accountCard.CardId },
+                    take: -1
+                })
+
+                accountCard.NumberVersion = lastCardThisVersion.NumberVersion + 1
+                accountCard.Status = 'Actual'
+                return await prisma.accountCard.create({
+                    data: accountCard
+                })
+            })
+            return getCard
+        }
+        catch (e) {
+            console.warn(e)
+            return 'Произошла ошибка при изменении карточки'
         }
     }
 
@@ -243,60 +262,88 @@ export class AccountCardService {
     private async createNewFieldsCards(
         accountCard: AccountCard,
         fieldsCards: Prisma.FieldCardCreateManyInput[],
-        fieldsCardsValue: { Value: string }[]): Promise<string> {
+        fieldsCardsValue: { Value: string }[]): Promise<string | ValidateMessage[]> {
         let errors = []
         let regexp = new RegExp('[^0-9]', 'g')
         for (let i = 0; i < fieldsCards.length; i++) {
             let value: ValueInteger | ValueString
             try {
                 fieldsCards[i].DataType = regexp.test(fieldsCardsValue[i].Value) ? 'String' : 'Integer'
-                await this.prisma.fieldCard.create({ data: fieldsCards[i] })
-            }
-            catch (e) {
-                console.warn(e)
-                errors.push(fieldsCards[i].Name)
-                continue
-            }
-            try {
-                if (fieldsCards[i].DataType === 'String')
-                    value = await this.prisma.valueString.create({ data: <Prisma.ValueStringCreateManyInput>fieldsCardsValue[i] })
-                else if (fieldsCards[i].DataType === 'Integer') {
-                    var intValue = <Prisma.ValueIntegerCreateManyInput>{ Value: parseInt(fieldsCardsValue[i].Value) }
-                    value = await this.prisma.valueInteger.create({ data: intValue })
-                }
-            }
-            catch (e) {
-                console.warn(e)
-                errors.push('значение поля: ' + fieldsCards[i].Name)
-                await this.prisma.fieldCard.delete({
-                    where: {
-                        Name: fieldsCards[i].Name
+                await this.prisma.$transaction(async (prisma) => {
+                    let checkFieldCard = await prisma.fieldCard.findFirst({
+                        where: {
+                            Name: fieldsCards[i].Name
+                        }
+                    })
+                    if (checkFieldCard === null) {
+                        let newField = await prisma.fieldCard.create({ data: fieldsCards[i] })
+                        value = await this.createFieldValue(newField, fieldsCardsValue[i], prisma)
+                        await this.createNewConnectionTable(accountCard, newField, value, prisma)
+                    }
+                    else if (checkFieldCard !== null && checkFieldCard.DataType === fieldsCards[i].DataType) {
+                        value = await this.createFieldValue(fieldsCards[i], fieldsCardsValue[i], prisma)
+                        await this.createNewConnectionTable(accountCard, fieldsCards[i], value, prisma)
+                    }
+                    else {
+                        errors.push(<ValidateMessage>{
+                            Id: i,
+                            Message: 'Тип данных поля не совпадает с типом данных поля в системе'
+                        })
                     }
                 })
-                continue
-            }
-            try {
-                let connectionTable = <Prisma.ConnectionTableCreateManyInput>{
-                    AccountCardId: accountCard.Id,
-                    FieldCardName: fieldsCards[i].Name,
-                    ValueIntegerId: fieldsCards[i].DataType === 'Integer' ? value.Id : null,
-                    ValueStringId: fieldsCards[i].DataType === 'String' ? value.Id : null
-                }
-                await this.prisma.connectionTable.create({ data: connectionTable })
             }
             catch (e) {
                 console.warn(e)
-                errors.push('ошибка при добавлении поля: ' + fieldsCards[i].Name)
-                await this.prisma.$transaction(async (prisma) => {
-                    await prisma.fieldCard.delete({ where: { Name: fieldsCards[i].Name } })
-                    if (fieldsCards[i].DataType === 'String')
-                        await prisma.valueString.delete({ where: { Id: value.Id } })
-                    else (fieldsCards[i].DataType === 'Integer')
-                    await prisma.valueInteger.delete({ where: { Id: value.Id } })
+                errors.push(<ValidateMessage>{
+                    Id: i,
+                    Message: 'Ошибка при создании поля'
                 })
             }
         }
-        return errors.length === 0 ? 'Успешно' : 'Поля ' + errors.join(', ') + ' присутствуют в системе'
+        return errors.length === 0 ? 'Успешно' : errors
+    }
+
+    private async createFieldValue(fieldCard: FieldCard,
+        fieldCardValue: { Value: string },
+        prisma: Omit<PrismaService, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use">):
+        Promise<ValueInteger | ValueString> {
+        if (fieldCard.DataType === 'String') {
+            let checkValue = await prisma.valueString.findFirst({
+                where: {
+                    Value: fieldCardValue.Value
+                }
+            })
+            console.log(checkValue)
+            if (checkValue === null)
+                return await prisma.valueString.create({ data: <Prisma.ValueStringCreateManyInput>fieldCardValue })
+            else return checkValue
+        }
+        else if (fieldCard.DataType === 'Integer') {
+            var intValue = <Prisma.ValueIntegerCreateManyInput>{ Value: parseInt(fieldCardValue.Value) }
+            let checkValue = await prisma.valueInteger.findFirst({
+                where: {
+                    Value: intValue.Value
+                }
+            })
+            if (checkValue === null)
+                return await prisma.valueInteger.create({ data: intValue })
+            else return checkValue
+        }
+        return
+    }
+
+    private async createNewConnectionTable(
+        accountCard: AccountCard,
+        fieldCard: FieldCard,
+        value: ValueInteger | ValueString,
+        prisma: Omit<PrismaService, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use">) {
+        let connectionTable = <Prisma.ConnectionTableCreateManyInput>{
+            AccountCardId: accountCard.Id,
+            FieldCardName: fieldCard.Name,
+            ValueIntegerId: fieldCard.DataType === 'Integer' ? value.Id : null,
+            ValueStringId: fieldCard.DataType === 'String' ? value.Id : null
+        }
+        await prisma.connectionTable.create({ data: connectionTable })
     }
 
     private async createNewConnectionTables(arrayTables: Prisma.ConnectionTableCreateManyInput[],
