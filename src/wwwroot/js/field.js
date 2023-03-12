@@ -6,6 +6,23 @@ $(document).on('click', '#sendPatch', function (e) {
         return returnId
     }
 
+    class ConnectionTable {
+        AccountCardId
+        FieldCardName
+        ValueIntegerId
+        ValueStringId
+        constructor(tr) {
+            this.FieldCardName = $($(tr).children()[0]).text().trim()
+            let fieldCardDataType = $($(tr).children()[0]).attr('id')
+            if (fieldCardDataType === 'String') {
+                this.ValueStringId = $($(tr).children()[1]).attr('id')
+            }
+            else {
+                this.ValueIntegerId = $($(tr).children()[1]).attr('id')
+            }
+        }
+    }
+
     class FieldCard {
         Name
         DataType
@@ -37,23 +54,37 @@ $(document).on('click', '#sendPatch', function (e) {
         }
     }
 
+    var dataConnectionTable = []
+    let tr = $('tbody tr')
+    for (let i = 0; i < tr.length; i++) {
+        if (!$(tr[i]).attr('hidden')) {
+            dataConnectionTable.push(new ConnectionTable(tr[i]))
+        }
+    }
+
     let card = {
         NumberVersion: getData('#cardVersion'),
         CardId: getData('#idCard'),
-        DateOfCreateVersion: null,
         Name: $('#name').val(),
-        Status: 'Actual'
+        Status: $('#status').val()
     }
     if (card.Name === '') alert('Введите название карточки')
     else $.ajax({
-        type: "POST",
+        type: "PATCH",
         url: "/api/card/patch",
         data: {
-            accountCard: card, fieldCard: dataField, fieldCardValue: dataValue
+            accountCard: card,
+            fieldsCards: dataField,
+            fieldsCardsValues: dataValue,
+            connectionTables: dataConnectionTable
         },
         dataType: "json",
         success: function (response) {
-            alert(response.message)
+            if (typeof (response.message) === 'string')
+                alert(response.message)
+            else {
+                validateField(response.message)
+            }
         }
     });
 });
@@ -63,18 +94,33 @@ $('#patch').click(function (e) {
 
     $('#data-container').empty();
 
-    let inputGroupName = createElement({ tag: 'div', class: 'input-group mb-3 mt-3' })
-    generateInputGroup(inputGroupName, 'Название карточки', 'name')
+    createDeleteButtons()
 
-    let sendButton = createElement({ tag: 'button', class: 'btn btn-primary', id: 'sendPatch', text: 'Отправить' })
+    let inputGroupName = createElement({ tag: 'div', class: 'input-group mb-3 mt-3' })
+    createInputGroup(inputGroupName, 'Название карточки', 'name')
+
+    let label = createElement({ tag: 'label', text: 'Статус текущей карточки' })
+
+    let inputStatus = createElement({ tag: 'select', class: 'form-select mb-3', id: 'status' })
+
+    let optionStatus1 = createElement({ tag: 'option', text: 'Актуальна', value: 'Actual' })
+    optionStatus1.selected = true
+    let optionStatus2 = createElement({ tag: 'option', text: 'Не актуальна', value: 'Not actual' })
+
+    inputStatus.append(optionStatus1)
+    inputStatus.append(optionStatus2)
+
+    let sendButton = createElement({ tag: 'button', class: 'btn btn-primary mb-3', id: 'sendPatch', text: 'Отправить' })
 
     $(this).remove();
-    $('.scroll').prop('hidden', false)
+    $('#field-container').prop('hidden', false)
     $('#data-container').append(inputGroupName);
+    $('#data-container').append(label)
+    $('#data-container').append(inputStatus);
     $('#data-container').append(sendButton);
 })
 
-function generateInputGroup(inputGroup, nameText, idInput) {
+function createInputGroup(inputGroup, nameText, idInput) {
     let inputGroupPrepend = createElement({ tag: 'div', class: 'input-group-prepend' })
     inputGroup.append(inputGroupPrepend);
 
@@ -85,3 +131,24 @@ function generateInputGroup(inputGroup, nameText, idInput) {
     $(inputGroup).append(input);
     $(input).attr('aria-describedby', 'basic-addon3');
 }
+
+function createDeleteButtons() {
+    let tr = $('tbody tr')
+    for (let i = 0; i < tr.length; i++) {
+        let td = createElement({ tag: 'td' })
+        let deleteButton = createElement({ tag: 'button', class: 'btn btn-outline-danger btn-sm', id: 'deleteField', text: 'Удалить поле' })
+        $(tr[i]).append(td)
+        $(td).append(deleteButton)
+    }
+    let th = createElement({ tag: 'th', class: 'link-dark', id: 'recoverField', text: 'Восстановить поля' })
+    $('thead tr').append(th)
+}
+
+$(document).on('click', '#deleteField', function () {
+    if ($(this).parent().parent().is('tr'))
+        $(this).parent().parent().prop('hidden', true)
+})
+
+$(document).on('click', '#recoverField', function () {
+    $('tbody tr').prop('hidden', false)
+})
