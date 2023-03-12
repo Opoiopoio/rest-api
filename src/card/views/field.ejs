@@ -21,50 +21,47 @@
                     <h2 id="idCard">Идентификатор карточки: <%- content[0].AccountCard.CardId %></h2>
                     <h3 id="cardVersion">Номер версии: <%= content[0].AccountCard.NumberVersion %>
                     </h3>
-                    <div class="row">
-                        <div class="col-6">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Название поля</th>
-                                        <th>Значение поля</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <% content.forEach(function(connectionTable) { %>
-                                        <% var value %>
-                                            <% if (connectionTable.FieldCard.DataType==='String' ) {
-                                                value=connectionTable.ValueString %>
-                                                <% } else {value=connectionTable.ValueInteger} %>
-                                                    <tr>
-                                                        <td id="<%= connectionTable.FieldCard.DataType %>">
-                                                            <%= connectionTable.FieldCardName %>
-                                                        </td>
-                                                        <td id="<%= value.Id %>">
-                                                            <%= value.Value %>
-                                                        </td>
-                                                    </tr>
-                                                    <% }) %>
-                                </tbody>
-                            </table>
+                    <a href="/api/card/list">Вернуться к списку карточек</a><br>
+                    <a href="/api/card/versions/<%= content[0].AccountCard.CardId %>">Вернуться к списку версий
+                        карточки</a>
+                    </h3>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <div class="scroll">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Название поля</th>
+                                            <th>Значение поля</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% content.forEach(function(connectionTable) { %>
+                                            <% var value %>
+                                                <% if (connectionTable.FieldCard.DataType==='String' ) {
+                                                    value=connectionTable.ValueString %>
+                                                    <% } else {value=connectionTable.ValueInteger} %>
+                                                        <tr>
+                                                            <td id="<%= connectionTable.FieldCard.DataType %>">
+                                                                <%= connectionTable.FieldCardName %>
+                                                            </td>
+                                                            <td id="<%= value.Id %>">
+                                                                <%= value.Value %>
+                                                            </td>
+                                                        </tr>
+                                                        <% }) %>
+                                    </tbody>
+                                </table>
+                            </div>
                             <button id="patch" class="btn btn-success">patch</button>
                             <div id="data-container"></div>
                         </div>
-                        <div class="col-6 scroll" hidden>
-                            <div class="form-floating mb-3 mt-3">
-                                <input class="form-control" id="fieldCardName" placeholder="Название поля карточки"
-                                    autocomplete="off" />
-                                <label for="fieldCardName" class="control-label">Название поля карточки</label>
-                            </div>
-                            <div class="form-floating mb-3">
-                                <input class="form-control" id="cardValue" placeholder="Значение поля карточки"
-                                    autocomplete="off" />
-                                <label for="cardValue" class="control-label">Значение поля карточки</label>
-                            </div>
-                            <div class="justify-content-between">
+                        <div class="col-md-6 p-0" id="field-container" hidden>
+                            <div class="button-container">
                                 <div class="btn btn-success mb-3" id="add">Добавить поле</div>
                                 <div class="btn btn-danger mb-3" id="delete">Удалить последнее поле</div>
                             </div>
+                            <div class="scroll pt-1"></div>
                         </div>
                     </div>
                     <% } %>

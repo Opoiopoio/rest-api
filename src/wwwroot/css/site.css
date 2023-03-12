@@ -26,9 +26,17 @@
 }
 
 .scroll {
+    padding-right: calc(var(--bs-gutter-x) * .5);
+    padding-left: calc(var(--bs-gutter-x) * .5);
+
     overflow-y: auto;
 
     max-height: 50vh;
+}
+
+.button-container {
+    padding-right: calc(var(--bs-gutter-x) * .5);
+    padding-left: calc(var(--bs-gutter-x) * .5);
 }
 
 .field-card-container::-webkit-scrollbar {
@@ -50,4 +58,8 @@
 
 .link {
     cursor: pointer;
+}
+
+.table tbody td {
+    vertical-align: middle;
 }
