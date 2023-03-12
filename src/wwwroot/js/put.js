@@ -1,56 +1,5 @@
-
-
-$(document).on('click', '.filling', closeFieldCards)
-
-$('.btn-close').click(closeFieldCards)
-
-function closeFieldCards() {
-    $('.field-card-container').css('display', 'none')
-    $('.filling').remove()
-}
-
-
-$('#openFieldCards').click(openFiedCards)
-
-$('#openFieldCardsDeduplicated').click(function () {
-    $('#deduplication').css('display', 'block')
-    let filling = document.createElement('div')
-    filling.className = 'filling'
-    $('#deduplication').after(filling)
-})
-
-function openFiedCards() {
-    $('#duplication').css('display', 'block')
-    let filling = document.createElement('div')
-    filling.className = 'filling'
-    $('#duplication').after(filling)
-}
-
-$('form').validate({
-    // этот класс применяетсья для правильно заполненого поля
-    validClass: "w3-border-green w3-pale-green",
-    errorClass: "is-invalid text-danger", // противоположный
-
-    wrapper: 'div', // во что обарачивать ошибки
-    rules: {
-        CardId: {
-            required: true,
-            number: true
-        },
-        Name: {
-            required: true
-        }
-    },
-    messages: {
-        CardId: {
-            required: 'Заполните поле идентификатор карточки',
-            number: 'Введите число'
-        },
-        Name: {
-            required: 'Заполните поле название карточки'
-        }
-    },
-    submitHandler: function(e) {
+$('form').submit(
+    function (e) {
         e.preventDefault();
 
         var onForm = this
@@ -117,6 +66,58 @@ $('form').validate({
                     console.error('Error:', error);
                 }
             }
+    })
+
+
+$(document).on('click', '.filling', closeFieldCards)
+
+$('.btn-close').click(closeFieldCards)
+
+function closeFieldCards() {
+    $('.field-card-container').css('display', 'none')
+    $('.filling').remove()
+}
+
+
+$('#openFieldCards').click(openFiedCards)
+
+$('#openFieldCardsDeduplicated').click(function () {
+    $('#deduplication').css('display', 'block')
+    let filling = document.createElement('div')
+    filling.className = 'filling'
+    $('#deduplication').after(filling)
+})
+
+function openFiedCards() {
+    $('#duplication').css('display', 'block')
+    let filling = document.createElement('div')
+    filling.className = 'filling'
+    $('#duplication').after(filling)
+}
+
+$('form').validate({
+    // этот класс применяетсья для правильно заполненого поля
+    validClass: "w3-border-green w3-pale-green",
+    errorClass: "is-invalid text-danger", // противоположный
+
+    wrapper: 'div', // во что обарачивать ошибки
+    rules: {
+        CardId: {
+            required: true,
+            number: true
+        },
+        Name: {
+            required: true
+        }
+    },
+    messages: {
+        CardId: {
+            required: 'Заполните поле идентификатор карточки',
+            number: 'Введите число'
+        },
+        Name: {
+            required: 'Заполните поле название карточки'
+        }
     },
 
     invalidHandler: function (event, validator) {
