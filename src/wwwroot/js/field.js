@@ -69,6 +69,7 @@ $(document).on('click', '#sendPatch', function (e) {
         Status: $('#status').val()
     }
     if (card.Name === '') alert('Введите название карточки')
+    else if (card.Name !== '' && confirm) alert('Заполните поля карточки')
     else $.ajax({
         type: "PATCH",
         url: "/api/card/patch",

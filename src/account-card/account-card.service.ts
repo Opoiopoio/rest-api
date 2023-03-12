@@ -263,6 +263,7 @@ export class AccountCardService {
         accountCard: AccountCard,
         fieldsCards: Prisma.FieldCardCreateManyInput[],
         fieldsCardsValue: { Value: string }[]): Promise<string | ValidateMessage[]> {
+        if (fieldsCards === undefined) return 'Успешно'
         let errors = []
         let regexp = new RegExp('[^0-9]', 'g')
         for (let i = 0; i < fieldsCards.length; i++) {
