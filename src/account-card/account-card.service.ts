@@ -23,7 +23,8 @@ export class AccountCardService {
                 },
                 orderBy: { CardId: 'asc' }
             })
-            
+
+            //Удаление из выборки элементов с одинаковым идентификатором
             accountCards.forEach(accountCard => {
                 let condition: boolean = true
                 for (let i = 0; i < accountCards.length; i++) {
@@ -78,6 +79,7 @@ export class AccountCardService {
                 })
             }
             else {
+                //Поиск карточки по её Id и получение последней её версии
                 card = await this.prisma.accountCard.findFirst({
                     where: {
                         CardId: id,
@@ -89,11 +91,12 @@ export class AccountCardService {
                 })
             }
 
-            //Поиск полей карточки
+            //Проверка на наличие карточки в системе
             if (card === null)
                 //Возврат сообщения пользователю
                 return 'Такой карточки нет'
             else {
+                //Поиск полей карточки
                 let connectinTable = await this.prisma.connectionTable.findMany({
                     where: {
                         AccountCardId: card.Id
@@ -197,7 +200,18 @@ export class AccountCardService {
         if (typeof (getCard) === 'string') return getCard
         else {
             //Вызов метода для привязки полей к карточке
-            return await this.createNewFieldsCards(getCard, fieldCard, fieldCardValue)
+            let field = await this.createNewFieldsCards(getCard, fieldCard, fieldCardValue)
+            if (typeof (field) === 'string')
+                return field
+            else {
+                //Проверка на количество ошибок. 
+                //В случае одинакового количества ошибок и входных данных удаляется карточка
+                if (field.length === fieldCard.length)
+                    await this.prisma.accountCard.delete({
+                        where: { Id: getCard.Id }
+                    })
+                return field
+            }
         }
     }
 
@@ -214,7 +228,18 @@ export class AccountCardService {
             else {
                 if (await this.createNewConnectionTables(connectionTables, card) === 'Успешно') {
                     //Вызов метода для привязки полей к карточке
-                    return await this.createNewFieldsCards(card, fieldCard, fieldCardValue)
+                    let field = await this.createNewFieldsCards(card, fieldCard, fieldCardValue)
+                    if (typeof (field) === 'string')
+                        return field
+                    else {
+                        //Проверка на количество ошибок. 
+                        //В случае одинакового количества ошибок и входных данных удаляется карточка
+                        if (field.length === fieldCard.length && connectionTables.length === 0)
+                            await this.prisma.accountCard.delete({
+                                where: { Id: card.Id }
+                            })
+                        return field
+                    }
                 }
             }
         }
@@ -225,10 +250,12 @@ export class AccountCardService {
         }
     }
 
+    //Метод изменения карточки
     private async editAccountCard(accountCard: Prisma.AccountCardUncheckedCreateInput): Promise<AccountCard | string> {
         try {
             accountCard.CardId = parseInt(String(accountCard.CardId))
             accountCard.NumberVersion = parseInt(String(accountCard.NumberVersion))
+
             let getCard = await this.prisma.$transaction(async (prisma) => {
                 let card: Prisma.AccountCardWhereUniqueInput = await prisma.accountCard.findFirst({
                     where: {
@@ -284,18 +311,29 @@ export class AccountCardService {
         fieldsCards: Prisma.FieldCardCreateManyInput[],
         fieldsCardsValue: { Value: string }[]): Promise<string | ValidateMessage[]> {
         if (fieldsCards === undefined) return 'Успешно'
+
+        //Массив для передачи ошибок клиенту
         let errors = []
+
+        //Регулярное выражение для определения типа данных поля.
+        //В случяе присутствия в значении поля буквы, типом поля будет string
+        //Если в поле отсутствуют буквы - integer
         let regexp = new RegExp('[^0-9]', 'g')
         for (let i = 0; i < fieldsCards.length; i++) {
             let value: ValueInteger | ValueString
             try {
                 fieldsCards[i].DataType = regexp.test(fieldsCardsValue[i].Value) ? 'String' : 'Integer'
                 await this.prisma.$transaction(async (prisma) => {
+
+                    //Проверка на наличие в системе поля с таким же названием
                     let checkFieldCard = await prisma.fieldCard.findFirst({
                         where: {
                             Name: fieldsCards[i].Name
                         }
                     })
+
+                    //Если поле отсутствует в системе создаем поле, затем вносим его значение.
+                    //После чего привязываем данные к учётной карточке
                     if (checkFieldCard === null) {
                         let newField = await prisma.fieldCard.create({ data: fieldsCards[i] })
                         value = await this.createFieldValue(newField, fieldsCardsValue[i], prisma)
@@ -324,11 +362,14 @@ export class AccountCardService {
         return errors.length === 0 ? 'Успешно' : errors
     }
 
+    //Добавление значения поля
     private async createFieldValue(fieldCard: FieldCard,
         fieldCardValue: { Value: string },
         prisma: Omit<PrismaService, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use">):
         Promise<ValueInteger | ValueString> {
         if (fieldCard.DataType === 'String') {
+
+            //Проверка на наличие в системе такого же значения
             let checkValue = await prisma.valueString.findFirst({
                 where: {
                     Value: fieldCardValue.Value
@@ -340,6 +381,8 @@ export class AccountCardService {
         }
         else if (fieldCard.DataType === 'Integer') {
             var intValue = <Prisma.ValueIntegerCreateManyInput>{ Value: parseInt(fieldCardValue.Value) }
+
+            //Проверка на наличие в системе такого же значения
             let checkValue = await prisma.valueInteger.findFirst({
                 where: {
                     Value: intValue.Value
@@ -352,6 +395,7 @@ export class AccountCardService {
         return
     }
 
+    //Объединение данных в таблице соединений и добавление таблицы в БД
     private async createNewConnectionTable(
         accountCard: AccountCard,
         fieldCard: FieldCard,
@@ -366,6 +410,7 @@ export class AccountCardService {
         await prisma.connectionTable.create({ data: connectionTable })
     }
 
+    //Привязка переданных таблиц соединений к новой карточке
     private async createNewConnectionTables(arrayTables: Prisma.ConnectionTableCreateManyInput[],
         accountCard: AccountCard): Promise<string> {
         try {
