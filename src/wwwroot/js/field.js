@@ -70,6 +70,7 @@ $(document).on('click', '#sendPatch', function (e) {
     }
     if (card.Name === '') alert('Введите название карточки')
     else if (card.Name !== '' && confirm) alert('Заполните поля карточки')
+    else if (card.Name !== '' && !confirm && $('.is-invalid').length !== 0) alert('Исправьте ошибки')
     else $.ajax({
         type: "PATCH",
         url: "/api/card/patch",
@@ -141,7 +142,8 @@ function createDeleteButtons() {
         $(tr[i]).append(td)
         $(td).append(deleteButton)
     }
-    let th = createElement({ tag: 'th', class: 'link-dark', id: 'recoverField', text: 'Восстановить поля' })
+    let th = createElement({ tag: 'th' })
+    th.append(createElement({ tag: 'button', class: 'btn btn-success btn-sm', id: 'recoverField', text: 'Восстановить' }))
     $('thead tr').append(th)
 }
 
