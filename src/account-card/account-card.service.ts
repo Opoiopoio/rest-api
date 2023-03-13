@@ -20,8 +20,19 @@ export class AccountCardService {
                 by: ['CardId', 'Name'],
                 where: {
                     Status: "Actual"
-                }
+                },
+                orderBy: { CardId: 'asc' }
             })
+            
+            accountCards.forEach(accountCard => {
+                let condition: boolean = true
+                for (let i = 0; i < accountCards.length; i++) {
+                    if (accountCard.CardId === accountCards[i].CardId && !condition) {
+                        accountCards.splice(i, 1)
+                    }
+                    else if (accountCard.CardId === accountCards[i].CardId && condition) condition = false
+                }
+            });
             return accountCards
         }
         catch (e) {
@@ -37,6 +48,9 @@ export class AccountCardService {
                 where: {
                     CardId: id,
                     Status: 'Actual'
+                },
+                orderBy: {
+                    NumberVersion: 'asc'
                 }
             })
         }
@@ -57,6 +71,9 @@ export class AccountCardService {
                         CardId: id,
                         NumberVersion: version,
                         Status: 'Actual'
+                    },
+                    orderBy: {
+                        Name: 'asc'
                     }
                 })
             }
@@ -65,7 +82,10 @@ export class AccountCardService {
                     where: {
                         CardId: id,
                     },
-                    take: -1
+                    take: -1,
+                    orderBy: {
+                        Name: 'asc'
+                    }
                 })
             }
 
